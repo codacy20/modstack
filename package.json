@@ -31,7 +31,12 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"test": "pnpm run test:unit run",
-		"test:unit": "vitest"
+		"test:unit": "vitest",
+		"typecheck": "tsc -p tsconfig.build.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"format:check": "biome format ."
 	},
 	"license": "MIT",
 	"engines": {
@@ -41,6 +46,7 @@
 		"dist/"
 	],
 	"devDependencies": {
+		"@biomejs/biome": "2.5.8",
 		"@types/node": "22.14.0",
 		"typescript": "5.8.3",
 		"vitest": "3.1.1"

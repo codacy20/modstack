@@ -47,9 +47,8 @@ type ModGuide<Inst> = {
 	readonly status: () => { state: ModState; status: unknown };
 };
 
-type ModParams<M> = M extends Mod<infer C, infer I, infer D>
-	? { C: C; I: I; D: D }
-	: never;
+type ModParams<M> =
+	M extends Mod<infer C, infer I, infer D> ? { C: C; I: I; D: D } : never;
 type ModStateParams<M> = M extends ModGuide<infer I> ? { I: I } : never;
 
 // Check which module instance types are compatible with the dependency type:
@@ -139,7 +138,7 @@ const makeModState = <
 		configure(envVars: EnvVars) {
 			if (!mod.configure) {
 				// NOTE: When configure does not exist `Cfg` must be `null`.
-				cfg = null!; // TODO: Ensure type-safety?
+				cfg = null as ModParams<typeof mod>["C"]; // TODO: Ensure type-safety?
 			} else {
 				try {
 					state = "configuring";

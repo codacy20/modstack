@@ -1,5 +1,5 @@
-import * as http from "http";
-import { URL } from "url";
+import * as http from "node:http";
+import { URL } from "node:url";
 
 const getObjectPath = (obj: Record<string, unknown>, path: string): unknown => {
 	return path
@@ -42,7 +42,10 @@ export const makeControlServer = ({
 	info?: Record<string, unknown>;
 }) => ({
 	configure: (envVars: Record<string, string | undefined>) => {
-		const rawPort = Number.parseInt(envVars[portConfigKey] ?? `${defaultPort}`);
+		const rawPort = Number.parseInt(
+			envVars[portConfigKey] ?? `${defaultPort}`,
+			10,
+		);
 		const port =
 			rawPort % 1 === 0 && rawPort > 0 && rawPort < 65536 ? rawPort : 0;
 		const host = envVars[hostConfigKey] ?? "0.0.0.0";

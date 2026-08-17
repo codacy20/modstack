@@ -19,7 +19,7 @@ describe("env proxy", () => {
 	it("does not allow write operations", () => {
 		const envProxy = makeEnvProxy({});
 		expect(() => {
-			envProxy.vars["TEST_KEY"] = "value";
+			envProxy.vars.TEST_KEY = "value";
 		}).toThrow();
 	});
 
@@ -99,14 +99,14 @@ describe("env proxy", () => {
 	describe("locking", () => {
 		it("by default throws when trying to access env vars after locking", () => {
 			const envProxy = makeEnvProxy({});
-			expect(envProxy.vars["X"]).toBeUndefined();
+			expect(envProxy.vars.X).toBeUndefined();
 			envProxy.lock();
-			expect(() => envProxy.vars["X"]).toThrow();
+			expect(() => envProxy.vars.X).toThrow();
 		});
 
 		it("allows to access env vars after locking when onLockedAccess returns true", () => {
 			const key = "X";
-			const onLockedAccess = vi.fn(({}: { key: string }) => true);
+			const onLockedAccess = vi.fn((_arg: { key: string }) => true);
 			const value = "env-value";
 			const envProxy = makeEnvProxy({ [key]: value }, { onLockedAccess });
 
@@ -120,7 +120,7 @@ describe("env proxy", () => {
 
 		it("throws when trying to access env vars after locking and onLockedAccess returns false", () => {
 			const key = "X";
-			const onLockedAccess = vi.fn(({}: { key: string }) => false);
+			const onLockedAccess = vi.fn((_arg: { key: string }) => false);
 			const value = "env-value";
 			const envProxy = makeEnvProxy({ [key]: value }, { onLockedAccess });
 
