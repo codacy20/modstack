@@ -298,7 +298,7 @@ import {
   type AppModuleInstance,
   type AppModuleDependencies,
   isCompatible,
-} from 'modstack/utils/app-module-compatibility';
+} from '@codacy20/modstack/utils/app-module-compatibility';
 
 // Given some example app-modules:
 const appModuleA = {
@@ -335,7 +335,7 @@ The environment variables can be locked, causing an error to be logged when envi
 
 Usage example:
 ```typescript
-import { makeEnvProxy } from 'modstack/utils/env-vars-proxy';
+import { makeEnvProxy } from '@codacy20/modstack/utils/env-vars-proxy';
 
 // ...
 

@@ -1,4 +1,4 @@
-import { makeEnvProxy } from "modstack/utils/env-vars-proxy";
+import { makeEnvProxy } from "@codacy20/modstack/utils/env-vars-proxy";
 import { describe, expect, it, vi } from "vitest";
 
 describe("env proxy", () => {

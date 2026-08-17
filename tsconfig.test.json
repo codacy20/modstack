@@ -6,8 +6,8 @@
 		"rootDir": ".",
 		"paths": {
 			"#@/*": ["./dist/*"],
-			"modstack": ["."],
-			"modstack/utils/*": ["./dist/utils/*"]
+			"@codacy20/modstack": ["."],
+			"@codacy20/modstack/utils/*": ["./dist/utils/*"]
 		}
 	},
 	"types": ["vitest/globals"]

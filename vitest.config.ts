@@ -14,8 +14,9 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			"#@": "/dist",
-			"modstack/utils/env-vars-proxy": "/dist/utils/env-vars-proxy.js",
-			modstack: "/",
+			"@codacy20/modstack/utils/env-vars-proxy":
+				"/dist/utils/env-vars-proxy.js",
+			"@codacy20/modstack": "/",
 		},
 	},
 });
