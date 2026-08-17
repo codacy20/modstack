@@ -1,6 +1,6 @@
 {
 	"name": "@codacy20/modstack",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"description": "Register application modules and guide them through the runtime lifecycle.",
 	"author": "Dave van Soest",
 	"type": "module",
