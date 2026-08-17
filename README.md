@@ -3,6 +3,10 @@ modstack
 
 Register application modules and guide them through the runtime lifecycle.
 
+[![Dependabot Updates](https://github.com/codacy20/modstack/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/codacy20/modstack/actions/workflows/dependabot/dependabot-updates)
+[![Release](https://github.com/codacy20/modstack/actions/workflows/release.yml/badge.svg)](https://github.com/codacy20/modstack/actions/workflows/release.yml)
+[![CI](https://github.com/codacy20/modstack/actions/workflows/ci.yml/badge.svg)](https://github.com/codacy20/modstack/actions/workflows/ci.yml)
+
 
 ## What is `modstack` ?
 
