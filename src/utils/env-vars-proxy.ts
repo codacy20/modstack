@@ -26,7 +26,7 @@ export const makeEnvProxy = (
 
 	const checkLock = (key: string) => {
 		if (locked) {
-			if (!options?.onLockedAccess || !options?.onLockedAccess({ key })) {
+			if (!options?.onLockedAccess?.({ key })) {
 				throw new Error(
 					`Unallowed access to env var '${key}' outside configuration phase.`,
 				);

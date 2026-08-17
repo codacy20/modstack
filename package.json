@@ -1,9 +1,10 @@
 {
-	"name": "modstack",
-	"version": "1.0.1",
+	"name": "@codacy20/modstack",
+	"version": "0.0.0",
 	"description": "Register application modules and guide them through the runtime lifecycle.",
 	"author": "Dave van Soest",
 	"type": "module",
+	"packageManager": "pnpm@11.7.0",
 	"main": "dist/modstack.js",
 	"types": "dist/modstack.d.ts",
 	"exports": {
@@ -30,8 +31,13 @@
 	},
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
-		"test": "pnpm run test:unit run",
-		"test:unit": "vitest"
+		"test": "pnpm run build && pnpm run test:unit run",
+		"test:unit": "vitest",
+		"typecheck": "tsc -p tsconfig.build.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"format:check": "biome format ."
 	},
 	"license": "MIT",
 	"engines": {
@@ -41,8 +47,9 @@
 		"dist/"
 	],
 	"devDependencies": {
+		"@biomejs/biome": "2.5.8",
 		"@types/node": "22.14.0",
-		"typescript": "5.9.3",
-		"vitest": "3.2.4"
+		"typescript": "5.8.3",
+		"vitest": "3.1.1"
 	}
 }

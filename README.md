@@ -63,7 +63,7 @@ App-modules can depend on other app-modules which are added earlier in the stack
 
 #### Initialize
 
-The central function of an app-module is the asynchronous `initialize`. It takes the resolved configuration and optionally dependencies as parameters. It should return a promise that resolves into an object with at least the instance. On failure, the `initialize` function should throw an exception, which will be caught and handled by ModStack.
+The only mandatory function of an app-module is the asynchronous `initialize`. It takes the resolved configuration and optionally dependencies as parameters. It should return a promise that resolves into an object with at least the instance. On failure, the `initialize` function should throw an exception, which will be caught and handled by ModStack.
 
 > [!NOTE]  
 > When the app-module requires no configuration, then the type of `initialize`'s first ("config") parameter must be `null`.
@@ -71,7 +71,6 @@ The central function of an app-module is the asynchronous `initialize`. It takes
 Example app-module with no dependencies:
 ```typescript
 const myAppModule = {
-    configure: () => ({ ok: true, value: null } as const),
     initialize: async (config: null) => ({
         instance: { dummy() { console.log('Dummy called'); } }
     })
@@ -81,7 +80,6 @@ const myAppModule = {
 Example app-module with a single named dependency:
 ```typescript
 const dependentAppModule = {
-    configure: () => ({ ok: true, value: null } as const),
     initialize: async (config: null, dependencies: { other: { doSomething: () => void } }) => ({
         instance: {
             dummy() {
@@ -102,7 +100,6 @@ interface Database {
 }
 
 const makeMyAppModule = ({ logger }: { logger: { error: (msg: string) => void } }) => ({
-    configure: () => ({ ok: true, value: null } as const),
     initialize: async (config: null, { db }: { db: Database }) => {
         return {
             instance: {
@@ -153,7 +150,6 @@ Besides the instance, the initialization can optionally return an asynchronous `
 Example:
 ```typescript
 const myFinalizingAppModule = {
-    configure: () => ({ ok: true, value: null } as const),
     initialize: async (config: null) => {
         const dbConnection = await db.connect('localhost', 1234).catch((err) => {
             logger.error(`Database connection error: ${err}`);
@@ -180,7 +176,6 @@ Optionally, the initialization can return return a synchronous `status` function
 Example
 ```typescript
 const myStatusExposingAppModule = {
-    configure: () => ({ ok: true, value: null } as const),
     initialize: async (config: null) => {
         const counter = { value: 0 };
         const makeInstance = (counter: { value: number }) => ({
@@ -303,7 +298,7 @@ import {
   type AppModuleInstance,
   type AppModuleDependencies,
   isCompatible,
-} from 'modstack/utils/app-module-compatibility';
+} from '@codacy20/modstack/utils/app-module-compatibility';
 
 // Given some example app-modules:
 const appModuleA = {
@@ -340,7 +335,7 @@ The environment variables can be locked, causing an error to be logged when envi
 
 Usage example:
 ```typescript
-import { makeEnvProxy } from 'modstack/utils/env-vars-proxy';
+import { makeEnvProxy } from '@codacy20/modstack/utils/env-vars-proxy';
 
 // ...
 

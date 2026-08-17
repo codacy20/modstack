@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # npm dependencies: existing versions are exact-pinned, and Dependabot
+  # preserves the manifest's pinning style, so updated deps stay pinned too.
+  - package-ecosystem: "npm"
+    directory: "/"
+    versioning-strategy: increase
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+
+  # Keep GitHub Actions (checkout, setup-node, pnpm/action-setup) up to date.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5

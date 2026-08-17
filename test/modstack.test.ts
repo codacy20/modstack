@@ -1,4 +1,4 @@
-import { ModstackError, modstack } from "modstack";
+import { ModstackError, modstack } from "@codacy20/modstack";
 import { describe, expect, it } from "vitest";
 import { ensurePromiseReject, ensureThrow } from "./helpers/utils.js";
 
