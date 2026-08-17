@@ -7,7 +7,6 @@
 		"sourceMap": true,
 		"declaration": true,
 		"allowJs": false,
-		"allowSyntheticDefaultImports": false,
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false,
 		"alwaysStrict": true,
@@ -30,7 +29,6 @@
 		"strictBindCallApply": true,
 		"strictPropertyInitialization": true,
 		"stripInternal": true,
-		"suppressImplicitAnyIndexErrors": false,
 		"types": ["node"]
 	},
 	"exclude": ["node_modules", "dist"],
