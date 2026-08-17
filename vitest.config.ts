@@ -11,12 +11,4 @@ export default defineConfig({
 			include: ["test/**/*.test.ts"],
 		},
 	},
-	resolve: {
-		alias: {
-			"#@": "/dist",
-			"@codacy20/modstack/utils/env-vars-proxy":
-				"/dist/utils/env-vars-proxy.js",
-			"@codacy20/modstack": "/",
-		},
-	},
 });
