@@ -4,6 +4,7 @@
 	"description": "Register application modules and guide them through the runtime lifecycle.",
 	"author": "Dave van Soest",
 	"type": "module",
+	"packageManager": "pnpm@11.7.0",
 	"main": "dist/modstack.js",
 	"types": "dist/modstack.d.ts",
 	"exports": {

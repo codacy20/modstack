@@ -3,12 +3,12 @@
 	"compilerOptions": {
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
+		"types": ["node", "vitest/globals"],
 		"rootDir": ".",
 		"paths": {
 			"#@/*": ["./dist/*"],
 			"@codacy20/modstack": ["."],
 			"@codacy20/modstack/utils/*": ["./dist/utils/*"]
 		}
-	},
-	"types": ["vitest/globals"]
+	}
 }
