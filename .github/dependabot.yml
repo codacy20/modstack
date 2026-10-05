@@ -5,6 +5,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     versioning-strategy: increase
+    reviewers:
+      - "codacy20"
     schedule:
       interval: "weekly"
       day: "friday"
@@ -15,6 +17,8 @@ updates:
   # Keep GitHub Actions (checkout, setup-node, pnpm/action-setup) up to date.
   - package-ecosystem: "github-actions"
     directory: "/"
+    reviewers:
+      - "codacy20"
     schedule:
       interval: "weekly"
       day: "friday"
