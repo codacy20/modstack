@@ -57,7 +57,7 @@ Typically, some of the app-modules of an application will be generic/reusable, w
 App-modules can depend on other app-modules which are added earlier in the stack. An app-module describes the typescript type of their dependencies. In this way, the dependent doesn't have to know which other app-module is actually used as the dependency, resulting in a modular, well-testable code design. ModStack uses the dependency types to determine which app-modules will produce instances compatible with each dependency type. In the stack definition, the dependencies are connected to the dependents by their name. ModStack checks that all non-optional dependencies are filled in and that all dependencies are type-compatible.
 
 > [!NOTE]  
-> Because dependencies are connected to dependents by name (which is a typescript literal string), incompatibilities will be indicated by a typescript error indicating that the specific dependency's name string can't be assigned to the dependency key of the dependent, while it will not show the cause of the incompatibility.
+> Because dependencies are connected to dependents by name (which is a typescript literal string), incompatibilities are indicated by a typescript error on the specific dependency's name string. The error explains the cause of the incompatibility, for example: `Type '"app-module-b"' is not assignable to type '"error: module 'app-module-b' instance is not assignable to dependency 'printer': property 'print' is missing" | "app-module-a"'.`
 
 > [!TIP]  
 > ModStack includes an app-module compatibility type helper, typically used in tests only. See the usage section for an example.
@@ -284,7 +284,7 @@ process.exit(started && stopped.ok ? 0 : 1);
 
 #### Check app-module type compatibility
 
-When assiging dependencies while adding app-modules to the stack, the compiler will not allow to use incompatible app-modules. As the assignment of dependencies is done by using the app-module's name string, the typescript error that will be shown when trying to assign an incompatible app-module looks like `Type 'string' is not assignable to type 'never'.`. This doesn't provide any information about what the type compatibility failure is.
+When assiging dependencies while adding app-modules to the stack, the compiler will not allow to use incompatible app-modules. As the assignment of dependencies is done by using the app-module's name string, the typescript error that is shown when trying to assign an incompatible app-module explains the cause of the failure, for example: `Type '"app-module-b"' is not assignable to type '"error: module 'app-module-b' instance is not assignable to dependency 'printer': property 'print' is missing" | "app-module-a"'.`. The error lists the reason why each incompatible app-module was rejected, together with the app-module names that would be compatible.
 
 The modstack package exports a utility for checking compatibility between an app-module used as a dependency and the declared type of the dependency on the dependent app-module. In case of an incompatibility, the compiler failure will provide the details about the compatibility failure.
 

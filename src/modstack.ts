@@ -59,6 +59,44 @@ export type CompatMods<
 	[N in keyof A]: ModStateParams<A[N]>["I"] extends Dep ? N : never;
 }[keyof A];
 
+// The dependency type without undefined, which is implied by optional dependencies:
+type RequiredDependencyType<Dep> = Exclude<Dep, undefined>;
+
+// Check which properties required by a dependency type are missing from, or incompatible with, a module instance type:
+type PropertyIssues<Dep, Inst> = {
+	[K in keyof Dep]-?: [K] extends [keyof Inst]
+		? [Inst[K]] extends [Dep[K]]
+			? never
+			: `property '${K & string}' has an incompatible type`
+		: [Partial<Pick<Dep, K>>] extends [Pick<Dep, K>]
+			? never
+			: `property '${K & string}' is missing`;
+}[keyof Dep];
+
+// Check which properties required by a dependency type are missing from, or incompatible with, a module instance type:
+// Dependency types with a string index signature (e.g. Record<string, T>) are checked against their value type,
+// while dependency types that are not object-like only provide a generic failure.
+export type CompatIssues<Dep, Inst> = [RequiredDependencyType<Dep>] extends [
+	object,
+]
+	? [string] extends [keyof RequiredDependencyType<Dep>]
+		? PropertyIssues<RequiredDependencyType<Dep>[string], Inst>
+		: PropertyIssues<RequiredDependencyType<Dep>, Inst>
+	: never;
+
+// Descriptive error message for a module instance that is not assignable to a dependency type:
+// NOTE: The ModStackBuilder 'add' DepKeys constraint generates these messages inline for every
+// registered app-module, because referencing them through a type alias would make the compiler
+// display an opaque type alias reference instead of the actual error messages.
+export type CompatError<
+	ModuleName extends string,
+	DepName extends string,
+	Dep,
+	Inst,
+> = [CompatIssues<Dep, Inst>] extends [never]
+	? `error: module '${ModuleName}' instance is not assignable to dependency '${DepName}'`
+	: `error: module '${ModuleName}' instance is not assignable to dependency '${DepName}': ${CompatIssues<Dep, Inst>}`;
+
 // Lifecycle phases.
 type Phase =
 	| "loading"
@@ -367,7 +405,21 @@ export type ModStackBuilder<
 		Inst,
 		Deps extends { readonly [name: string]: unknown },
 		DepKeys extends {
-			readonly [K in keyof Deps]: CompatMods<Deps[K], A> & keyof A;
+			readonly [K in keyof Deps]:
+				| (CompatMods<Deps[K], A> & keyof A)
+				// NOTE: The error messages are generated inline (see CompatError), because referencing them
+				// through a type alias makes the compiler display an opaque type alias reference instead.
+				// The union members make the compiler report what is wrong for each incompatible app-module.
+				| {
+						[N in keyof A]: ModStateParams<A[N]>["I"] extends Deps[K]
+							? never
+							: CompatError<
+									N & string,
+									Extract<K, string>,
+									Deps[K],
+									ModStateParams<A[N]>["I"]
+								>;
+				  }[keyof A];
 		},
 	>(
 		name: Name extends keyof A ? never : Name, // Prevents already registered name to be added.

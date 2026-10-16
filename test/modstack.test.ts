@@ -1,5 +1,6 @@
 import { ModstackError, modstack } from "@codacy20/modstack";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
+import type { CompatError, CompatIssues } from "../src/modstack.js";
 import { ensurePromiseReject, ensureThrow } from "./helpers/utils.js";
 
 type EnvVars = Record<string, string | undefined>;
@@ -189,12 +190,32 @@ describe("mod stack builder", () => {
 				},
 			) => ({ instance: {} }),
 		};
+		const modD = {
+			configure: () => ({ ok: true, value: null }) as const,
+			initialize: async (
+				_cfg: null,
+				_deps: {
+					a?: { sayA(): string };
+				},
+			) => ({ instance: {} }),
+		};
+		const modE = {
+			configure: () => ({ ok: true, value: null }) as const,
+			initialize: async (
+				_cfg: null,
+				_deps: Record<string, { sayA(): string }>,
+			) => ({ instance: {} }),
+		};
 		const builder = modstack({ logger })
 			.add("mod-b", modB, {})
 			// @ts-expect-error: mod-b is not type-compatible with mod-a.
 			.add("mod-c-1", modC, { a: "mod-b" })
 			// @ts-expect-error: mod-d is not part of the stack.
-			.add("mod-c-2", modC, { a: "mod-d" });
+			.add("mod-c-2", modC, { a: "mod-d" })
+			// @ts-expect-error: mod-b is not type-compatible with the optional dependency.
+			.add("mod-d-1", modD, { a: "mod-b" })
+			// @ts-expect-error: mod-b is not type-compatible with the record dependency.
+			.add("mod-e-1", modE, { a1: "mod-b" });
 		expect(builder).toHaveProperty("complete", expect.any(Function));
 	});
 
@@ -233,6 +254,41 @@ describe("mod stack builder", () => {
 			// @ts-expect-error: dependency for 'a2' is not provided.
 			.add("mod-c-error-2", modC, { a1: "mod-a", b: "mod-b", bOpt: "mod-b" });
 		expect(builder).toHaveProperty("complete", expect.any(Function));
+	});
+
+	// Type-level check of the error messages that the compiler reports for incompatible dependencies:
+	it("describes the cause of incompatible dependencies in the error message", () => {
+		expectTypeOf<
+			CompatError<"mod-b", "a", { sayA(): string }, { sayB(): string }>
+		>().toEqualTypeOf<"error: module 'mod-b' instance is not assignable to dependency 'a': property 'sayA' is missing">();
+		expectTypeOf<
+			CompatError<
+				"mod-a",
+				"db",
+				{ query(q: string): Promise<unknown> },
+				{ query(q: number): Promise<unknown> }
+			>
+		>().toEqualTypeOf<"error: module 'mod-a' instance is not assignable to dependency 'db': property 'query' has an incompatible type">();
+		expectTypeOf<
+			CompatError<
+				"mod-x",
+				"dep",
+				{ a: string; b: number },
+				{ unrelated(): void }
+			>
+		>().toEqualTypeOf<
+			| "error: module 'mod-x' instance is not assignable to dependency 'dep': property 'a' is missing"
+			| "error: module 'mod-x' instance is not assignable to dependency 'dep': property 'b' is missing"
+		>();
+		expectTypeOf<
+			CompatIssues<Record<string, { sayA(): string }>, { sayB(): string }>
+		>().toEqualTypeOf<"property 'sayA' is missing">();
+		expectTypeOf<
+			CompatError<"mod-x", "dep", string, number>
+		>().toEqualTypeOf<"error: module 'mod-x' instance is not assignable to dependency 'dep'">();
+		expectTypeOf<
+			CompatIssues<{ a?: { sayA(): string } }, object>
+		>().toEqualTypeOf<never>();
 	});
 
 	it("returns the lifecycle object on complete", () => {
