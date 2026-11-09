@@ -1,12 +1,10 @@
-modstack
-========
+# modstack
 
 Register application modules and guide them through the runtime lifecycle.
 
 [![Dependabot Updates](https://github.com/codacy20/modstack/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/codacy20/modstack/actions/workflows/dependabot/dependabot-updates)
 [![Release](https://github.com/codacy20/modstack/actions/workflows/release.yml/badge.svg)](https://github.com/codacy20/modstack/actions/workflows/release.yml)
 [![CI](https://github.com/codacy20/modstack/actions/workflows/ci.yml/badge.svg)](https://github.com/codacy20/modstack/actions/workflows/ci.yml)
-
 
 ## What is `modstack` ?
 
@@ -20,37 +18,35 @@ ModStack is non-intrusive, which means that it can work together with any other 
 
 ModStack does not (and will never) require any dependencies itself.
 
-
 ## Application runtime lifecycle
 
 Lifecycle phases for a working application:
-* `loading`: Modules are loaded; app-module stack is defined; logger is initialized.
-    * Loading modules must be free of side-effects.
-* `configuring`: Modules configure themselves from configuration source data (typically environment variables).
-    * Configuration is a synchronous phase.
-    * All configuration must be done in this phase.
-    * Typical configuration actions are reading environment variables or static configuration files.
-* `starting`: App-modules are initialized in their stack order; instances of dependencies are provided to dependents.
-    * The application will (try to) connect to its dependencies (services, databases, etc.). Upon failure, the application will not be started.
-* `ready`: All modules are successfully initialized; application is running.
-* `stopping`: App-modules are finalizing gracefully; dependents finalize before dependencies.
-* `stopped`: All modules are successfully finalized; application is stopped.
 
+- `loading`: Modules are loaded; app-module stack is defined; logger is initialized.
+  - Loading modules must be free of side-effects.
+- `configuring`: Modules configure themselves from configuration source data (typically environment variables).
+  - Configuration is a synchronous phase.
+  - All configuration must be done in this phase.
+  - Typical configuration actions are reading environment variables or static configuration files.
+- `starting`: App-modules are initialized in their stack order; instances of dependencies are provided to dependents.
+  - The application will (try to) connect to its dependencies (services, databases, etc.). Upon failure, the application will not be started.
+- `ready`: All modules are successfully initialized; application is running.
+- `stopping`: App-modules are finalizing gracefully; dependents finalize before dependencies.
+- `stopped`: All modules are successfully finalized; application is stopped.
 
 ### Lifecycle failure
 
 A number of these phases can end in a failure, breaking the regular lifecycle. These failures each have a corresponding phase, which is an alternative endpoint of the lifecycle.
-* `configuration_failed`: Failure occurred during the `configuring` phase. For example, an exception occurs, or the configuration function explicitly returns a failure, because a mandatory environment variable is absent. Even if the configuration of an app-module fails, all remaining app-modules will still be called to configure themselves. All failures combined will be returned.
-* `starting_failed`: Initialization of an app-module failed with an exception. The `starting` phase will be interrupted immediately. Depending on the `autoStopOnError` argument of the `lifecycle.start` function, the already initialized app-modules will be finalized, which will set the current phase as `stopping`.
-* `stopping_failed`: During the `stopping` phase, finalization of an app-module failed.
 
+- `configuration_failed`: Failure occurred during the `configuring` phase. For example, an exception occurs, or the configuration function explicitly returns a failure, because a mandatory environment variable is absent. Even if the configuration of an app-module fails, all remaining app-modules will still be called to configure themselves. All failures combined will be returned.
+- `starting_failed`: Initialization of an app-module failed with an exception. The `starting` phase will be interrupted immediately. Depending on the `autoStopOnError` argument of the `lifecycle.start` function, the already initialized app-modules will be finalized, which will set the current phase as `stopping`.
+- `stopping_failed`: During the `stopping` phase, finalization of an app-module failed.
 
 ## Application modules
 
 Application modules (in short: **app-modules**) are independent parts, which together compose an application. There is no rule that defines what functionality should go into an app-module and what should be separated, or how many source files it can consist of. But, following the ideas of modularity, it's a good idea to split the application code into coherent parts and connect them through well-defined interfaces. When a part can be configured and initialized on it's own, then it's definitely a good idea to make an app-module for it.
 
 Typically, some of the app-modules of an application will be generic/reusable, while others are specific to that application. For example: a generic app-module for the database client and a specific app-module for the application's business logic.
-
 
 ### Dependencies
 
@@ -62,7 +58,6 @@ App-modules can depend on other app-modules which are added earlier in the stack
 > [!TIP]  
 > ModStack includes an app-module compatibility type helper, typically used in tests only. See the usage section for an example.
 
-
 ### Interface
 
 #### Initialize
@@ -73,29 +68,39 @@ The only mandatory function of an app-module is the asynchronous `initialize`. I
 > When the app-module requires no configuration, then the type of `initialize`'s first ("config") parameter must be `null`.
 
 Example app-module with no dependencies:
+
 ```typescript
 const myAppModule = {
-    initialize: async (config: null) => ({
-        instance: { dummy() { console.log('Dummy called'); } }
-    })
+	initialize: async (config: null) => ({
+		instance: {
+			dummy() {
+				console.log("Dummy called");
+			},
+		},
+	}),
 } as const;
 ```
 
 Example app-module with a single named dependency:
+
 ```typescript
 const dependentAppModule = {
-    initialize: async (config: null, dependencies: { other: { doSomething: () => void } }) => ({
-        instance: {
-            dummy() {
-                other.doSomething();
-                console.log('Dummy called');
-            }
-        }
-    })
+	initialize: async (
+		config: null,
+		dependencies: { other: { doSomething: () => void } },
+	) => ({
+		instance: {
+			dummy() {
+				other.doSomething();
+				console.log("Dummy called");
+			},
+		},
+	}),
 } as const;
 ```
 
 A more realistic (but still very simplified) example, where the app-module is created from a function, and uses its dependency also in the initialization phase.
+
 ```typescript
 interface Database {
     connect: (host: string, port: number) => Promise<{
@@ -116,7 +121,6 @@ const makeMyAppModule = ({ logger }: { logger: { error: (msg: string) => void } 
 } as const);
 ```
 
-
 #### Configure
 
 The synchronous `configure` takes a dictionary of string-to-string mapped values (typicaly environment variables) as a parameter. It returns the configuration values on success, or a list of failures.
@@ -124,6 +128,7 @@ The synchronous `configure` takes a dictionary of string-to-string mapped values
 The configuration values can be of an arbitrary type, but they must be compatible with the first ("config") parameter of the `initialize` function.
 
 Example:
+
 ```typescript
 const myConfigurableAppModule = {
     configure: (env: Record<string, string | undefined) => {
@@ -143,7 +148,6 @@ const myConfigurableAppModule = {
 > [!NOTE]  
 > It recommended that both `configure` and `initialize` are pure functions, as ModStack keeps track of the configuration state. The configuration is returned from the `configure` function and passed to the first parameter of the `initialize` function, which must be type-compatible.
 
-
 #### Finalize
 
 Besides the instance, the initialization can optionally return an asynchronous `finalize` function, which is typically used to de-allocate resources acquired during initialization, such as closing database connections and stop listening for incoming requests or events.
@@ -152,67 +156,69 @@ Besides the instance, the initialization can optionally return an asynchronous `
 > Before de-allocating resources, it may be good to handle all ongoing transactions. For example, finalization can start by stopping listening for new incoming messages, then wait for handling of all currently processing messages to be finished.
 
 Example:
+
 ```typescript
 const myFinalizingAppModule = {
-    initialize: async (config: null) => {
-        const dbConnection = await db.connect('localhost', 1234).catch((err) => {
-            logger.error(`Database connection error: ${err}`);
-            throw err;
-        });
+	initialize: async (config: null) => {
+		const dbConnection = await db.connect("localhost", 1234).catch((err) => {
+			logger.error(`Database connection error: ${err}`);
+			throw err;
+		});
 
-        return {
-            instance: {
-                query: async (query: string) => dbConnection.execute(query),
-            },
-            async finalize() {
-                await dbConnection.destroy();
-            },
-        };
-    },
+		return {
+			instance: {
+				query: async (query: string) => dbConnection.execute(query),
+			},
+			async finalize() {
+				await dbConnection.destroy();
+			},
+		};
+	},
 } as const;
 ```
-
 
 #### Status
 
 Optionally, the initialization can return return a synchronous `status` function, which can expose arbitrary information about the status of the app-module. The status of all app-module's in the stack can be retrieved through the lifecycle object, which will call the `status` function of each individual app-module.
 
 Example
+
 ```typescript
 const myStatusExposingAppModule = {
-    initialize: async (config: null) => {
-        const counter = { value: 0 };
-        const makeInstance = (counter: { value: number }) => ({
-            callMe() { counter.value++; },
-        });
+	initialize: async (config: null) => {
+		const counter = { value: 0 };
+		const makeInstance = (counter: { value: number }) => ({
+			callMe() {
+				counter.value++;
+			},
+		});
 
-        return {
-            instance: makeInstance(),
-            status: () => ({
-                callCount: counter.value,
-            }),
-        };
-    },
+		return {
+			instance: makeInstance(),
+			status: () => ({
+				callCount: counter.value,
+			}),
+		};
+	},
 } as const;
 ```
-
 
 #### Options
 
 The `options` property on the app-module is optional. It may contain the following options:
 
-* `orderedFinalization` (boolean): Wait with finalizing this app-module until all app-modules higher in the stack (i.e. which were added/initialized after this one) have finished their finalization, as if this app-module would be a dependency of all of them. Please note that all app-modules lower in the stack will also postpone their finalization until finalization starts on this app-module. This option is typically not used on regular app-modules. It can be convenient in cases were an app-module instance needs to "stay alive" until the last moment before the application lifecycle stops; for example a control-server app-module which reports the service's liveness and readiness to its environment.
-
+- `orderedFinalization` (boolean): Wait with finalizing this app-module until all app-modules higher in the stack (i.e. which were added/initialized after this one) have finished their finalization, as if this app-module would be a dependency of all of them. Please note that all app-modules lower in the stack will also postpone their finalization until finalization starts on this app-module. This option is typically not used on regular app-modules. It can be convenient in cases were an app-module instance needs to "stay alive" until the last moment before the application lifecycle stops; for example a control-server app-module which reports the service's liveness and readiness to its environment.
 
 Example:
+
 ```typescript
 const myAppModule = {
-    initialize: async (config: null) => ({
-        instance: {},
-    }),
-    options: {
-        orderedFinalization: true,
-    },
+	initialize: async (config: null) => ({
+		instance: {},
+	}),
+	options: {
+		orderedFinalization: true,
+	},
 } as const;
 ```
 
@@ -220,32 +226,37 @@ const myAppModule = {
 
 Any existing library, module or class can easily be wrapped in an app-module adapter, so it can be used with ModStack. The other way around, an app-module can be integrated with any other application without using ModStack. An app-module adapter has no dependency on ModStack itself.
 
-
 ## Usage
 
 ### Building the app-module stack
 
 A simplified layered application could have the following app-modules:
-* Database client
-* External service client
-* Service layer (containing business logic)
-* Request handlers (controller layer)
-* Http server (listening for requests)
+
+- Database client
+- External service client
+- Service layer (containing business logic)
+- Request handlers (controller layer)
+- Http server (listening for requests)
 
 The code to build the app-module stack for this application, would look like this:
+
 ```typescript
-import { modstack } from 'modstack';
+import { modstack } from "modstack";
 
 const lifecycle = modstack({ logger: console })
-    .add('postgresql-client', postgresqlClientAppModule, {})
-    .add('payment-service-client', paymentServiceClientAppModule, {})
-    .add('order-service', orderServiceAppModule, {
-        orderDataSource: 'postgresql-client',
-        paymentService: 'payment-service-client',
-    })
-    .add('order-http-controller', orderHttpControllerModule, { orderService: 'order-service' })
-    .add('api-server', makeHttpServer({ port: 5000 }), { orderController: 'order-http-controller' })
-    .complete(); // Complete the stack and return the application instance lifecycle.
+	.add("postgresql-client", postgresqlClientAppModule, {})
+	.add("payment-service-client", paymentServiceClientAppModule, {})
+	.add("order-service", orderServiceAppModule, {
+		orderDataSource: "postgresql-client",
+		paymentService: "payment-service-client",
+	})
+	.add("order-http-controller", orderHttpControllerModule, {
+		orderService: "order-service",
+	})
+	.add("api-server", makeHttpServer({ port: 5000 }), {
+		orderController: "order-http-controller",
+	})
+	.complete(); // Complete the stack and return the application instance lifecycle.
 ```
 
 ### Lifecycle phases
@@ -259,26 +270,28 @@ Given the `lifecycle` instance, the remainder of the application's start-up modu
 const configResult = lifeycle.config(process.env);
 
 if (!configResult.ok) {
-    logger.error('Configuration errors:', JSON.stringify(configResult.failure, null, 2));
-    process.exit(1);
+	logger.error(
+		"Configuration errors:",
+		JSON.stringify(configResult.failure, null, 2),
+	);
+	process.exit(1);
 }
 
 const { started } = await lifecycle.start({ autoStopOnError: true });
 if (started) {
-    (['SIGHUP', 'SIGINT', 'SIGTERM'] as const).forEach((sig) => {
-        process.once(sig, () => {
-            if (lifecycle.status().inStoppablePhase) {
-                logger.info(`Stopping after receiving signal ${sig}`);
-                lifecycle.stop();
-            }
-        });
-    });
+	(["SIGHUP", "SIGINT", "SIGTERM"] as const).forEach((sig) => {
+		process.once(sig, () => {
+			if (lifecycle.status().inStoppablePhase) {
+				logger.info(`Stopping after receiving signal ${sig}`);
+				lifecycle.stop();
+			}
+		});
+	});
 }
 const stopped = await lifecycle.stopped();
 await logger.stop(); // NOTE: Finalize/flush the logger and potentially other observability modules.
 process.exit(started && stopped.ok ? 0 : 1);
 ```
-
 
 ### Utilities
 
@@ -292,12 +305,14 @@ The modstack package exports a utility for checking compatibility between an app
 > The recommended location for the compatibility checks between app-modules that are meant to be compatible, is as part of the unit tests.
 
 The utility has the following exports:
-* `type AppModuleInstance<AppModule>`: Returns the type of the instance that the app-module will produce on initialization. This instance type should be compatible with the declared dependency type, in order to be usable as the dependency instance.
-* `type AppModuleDependencies<AppModule>`: Returns the type of the dependencies of an app-module. This is typically an object mapping dependency names to its type.
-* `isCompatible<T, U extends T>()`: A helper function that only compiles when the second type argument is compatible with the first.
+
+- `type AppModuleInstance<AppModule>`: Returns the type of the instance that the app-module will produce on initialization. This instance type should be compatible with the declared dependency type, in order to be usable as the dependency instance.
+- `type AppModuleDependencies<AppModule>`: Returns the type of the dependencies of an app-module. This is typically an object mapping dependency names to its type.
+- `isCompatible<T, U extends T>()`: A helper function that only compiles when the second type argument is compatible with the first.
 
 Usage example:
-```ts 
+
+```ts
 import {
   type AppModuleInstance,
   type AppModuleDependencies,
@@ -330,7 +345,6 @@ describe('Check app-module A compatibility', () => {
 });
 ```
 
-
 #### Environment variables proxy
 
 The `env-vars-proxy` utility wraps the environment variables (e.g. from `process.env`) in an opaque proxy object, that keeps track of which variable names are accessed and whether they are present.
@@ -338,8 +352,9 @@ The `env-vars-proxy` utility wraps the environment variables (e.g. from `process
 The environment variables can be locked, causing an error to be logged when environment variables are accessed when locked. Usually environment variables are only read during the configuration phase of the application.
 
 Usage example:
+
 ```typescript
-import { makeEnvProxy } from '@codacy20/modstack/utils/env-vars-proxy';
+import { makeEnvProxy } from "@codacy20/modstack/utils/env-vars-proxy";
 
 // ...
 
@@ -351,21 +366,20 @@ const env = makeEnvProxy(process.env, { logger });
 const configResult = lifecycle.configure(env.vars);
 env.lock(); // Don't allow reading environment variables atfer the configuration phase.
 
-logger.info('Environment variables accessed:', env.accessLog());
+logger.info("Environment variables accessed:", env.accessLog());
 ```
 
 > [!TIP]
 > To only check which environment variables an application consumes without starting the application, the program can be exited after printing the environment variable access log.
-
 
 ### Lifecycle as a dependency
 
 Some functionality of the lifecycle is available to through the implicitly instantiated app-module `lifecycle`, which can be used as a dependency by other app-modules on the stack.
 
 The lifecycle app-module exposes these lifecycle functions:
-* `status()`: Retrieve the lifecycle status.
-* `stop()`: Trigger the lifecycle to stop.
 
+- `status()`: Retrieve the lifecycle status.
+- `stop()`: Trigger the lifecycle to stop.
 
 ### Built-in app-modules
 
@@ -378,39 +392,52 @@ The built-in stop-signal-handler app-module takes the lifecycle as a dependency.
 The signal handler is typically one of the first app-modules on the stack, in order to have the signal handler available while the other app-modules initialize.
 
 Usage example:
+
 ```typescript
-import { modstack } from 'modstack';
-import { makeStopSignalHandler } from 'modstack/app-modules/stop-signal-handler';
+import { modstack } from "modstack";
+import { makeStopSignalHandler } from "modstack/app-modules/stop-signal-handler";
 
 const lifecycle = modstack({ logger: console })
-    .add('signal-handler', makeStopSignalHandler({ logger: console }), { lifecycle: 'lifecycle' })
-    // Other app-modules go here...
-    .complete();
+	.add("signal-handler", makeStopSignalHandler({ logger: console }), {
+		lifecycle: "lifecycle",
+	})
+	// Other app-modules go here...
+	.complete();
 ```
 
 #### Control-server
 
 The built-in control-server app-module takes the lifecycle as a dependency. It starts a server listening for these specific http requests:
-* `GET /liveness` always returns status code `200`, indicating that the application is alive.
-* `GET /readiness` returns status code `200` whenever the lifecycle phase is "ready" and otherwise returns status code `503`.
-* `GET /status` returns all information returned by `lifecycle.status()` in JSON format. An optional `?field=<field.name.separated.by.dots>` query parameter can be provided to return only a specific field of the JSON object.
-* `GET /info` returns all information provided with the optional `info` parameter when creating the control-server in JSON format. An optional `?field=<field.name.separated.by.dots>` query parameter can be provided to return only a specific field of the JSON object.
-* `POST /stop` triggers the lifecycle to stop, but only if the control-server is configured to allow that.
+
+- `GET /liveness` always returns status code `200`, indicating that the application is alive.
+- `GET /readiness` returns status code `200` whenever the lifecycle phase is "ready" and otherwise returns status code `503`.
+- `GET /status` returns all information returned by `lifecycle.status()` in JSON format. An optional `?field=<field.name.separated.by.dots>` query parameter can be provided to return only a specific field of the JSON object.
+- `GET /info` returns all information provided with the optional `info` parameter when creating the control-server in JSON format. An optional `?field=<field.name.separated.by.dots>` query parameter can be provided to return only a specific field of the JSON object.
+- `POST /stop` triggers the lifecycle to stop, but only if the control-server is configured to allow that.
 
 The signal handler is typically one of the first app-modules on the stack, in order to report the liveness to the application controller even while initializating the application. To remain available throughout the finalization phase, the control-server postpones its finalization until all stacked app-modules are finalized.
 
 Usage example
+
 ```typescript
-import { modstack } from 'modstack';
-import { makeControlServer } from 'modstack/app-modules/control-server';
+import { modstack } from "modstack";
+import { makeControlServer } from "modstack/app-modules/control-server";
 
 const logger = console;
 const lifecycle = modstack({ logger })
-    .add('control-server', makeControlServer({ defaultPort: 3333, allowStop: true, info: { version: '1.0' }, logger }), { lifecycle: 'lifecycle' })
-    // Other app-modules go here...
-    .complete();
+	.add(
+		"control-server",
+		makeControlServer({
+			defaultPort: 3333,
+			allowStop: true,
+			info: { version: "1.0" },
+			logger,
+		}),
+		{ lifecycle: "lifecycle" },
+	)
+	// Other app-modules go here...
+	.complete();
 ```
-
 
 ## Code design recommendations
 
@@ -420,16 +447,13 @@ For modstack to ensure that each lifecycle phase is correctly handled, it's impo
 
 The same app-module could be used to create more than one instance in the stack.
 
-
 ### Avoid back-references
 
 App-modules defined later in the stack can rely on earlier defined app-modules to be initialized and available. But the reverse is not the case. Therefore an app-module should not pass references to itself or any of its required resources to its dependencies, for example through "registering" as a callback at a dependency. Instead, the dependencies should expose their own functionality to be used by dependent app-modules.
 
-
 ### Acquired resources require finalization
 
 Resources acquired during an app-module's initialization or running state will very likely require finalization. Examples are: closing network connections and destroying worker pools.
-
 
 ### Full app-module independence
 
@@ -441,16 +465,15 @@ It's recommended to apply "full abstraction" between app-module dependencies. Th
 
 An example: An app-module could require a `"user-datasource"` dependency to retrieve user data according to an interface with non-implementation-specific functions like `getUserById`. There can be a `"user-database"` app-module that implements the `getUserById` function by retrieving it from a database directly. But over time there may be additional logic required when retrieving user data from the database and separate "user-service" application is created. A new `"user-service-client"` app-module that also implements `getUserById` is now created to take over the `"user-database"`'s' place in the module stack as the dependency connected to the app-module requiring a `"user-datasource"`, without that app-module being aware of the change.
 
-
 ### App-module factory function
 
 Most often app-modules have some fixed settings that it needs to work. For those type of settings is common to create the app-module through a factory function, which takes those settings as parameters, to be available to the app-module.
 
 Example:
+
 ```typescript
     .add('public-http-server', makeHttpServer({ defaultPort: 5000, logger: console }))
 ```
-
 
 ### Preliminary program requirements
 
@@ -458,11 +481,9 @@ There may be preliminary requirements of a program, which need to be available d
 
 These instances are not part of the application module stack, but are initialized before and finalized after. The modstack builder actually needs a logger itself. To cleanly terminate the program, the logger needs it's data flushed after the module stack is fully finalized, right before exiting the process.
 
-
 ### Force exit process on failure
 
 When initialization or finalization of app-module fail, it may be that there are still event handlers registered in the program that prevent a "clean" exit. In that case it's likely a good idea to force exit the process through callng the `process.exit(exit_code)` function.
-
 
 ### Keep app-modules independent of modstack
 
@@ -477,4 +498,3 @@ Dave van Soest <https://github.com/tbknl>
 ## LICENSE
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
-
